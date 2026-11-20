@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inducción al Sistema de Muelle | Guía Operativa SAP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #fafafa;
+      color: #18181b;
+    }
+    /* Custom scrollbar minimalista */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #d4d4d8;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a1a1aa;
+    }
+    .step-checkbox:checked + .step-text {
+      text-decoration: line-through;
+      color: #a1a1aa;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-brand-100 selection:text-brand-900">
+
+  <!-- Navbar Superior -->
+  <header class="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-zinc-200/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-lg text-zinc-600 hover:bg-zinc-100" aria-label="Abrir menú">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        <div class="w-8 h-8 rounded-lg bg-zinc-900 text-white flex items-center justify-center font-mono font-semibold text-sm shadow-sm">
+          SAP
+        </div>
+        <div>
+          <h1 class="text-sm sm:text-base font-semibold text-zinc-900 tracking-tight leading-none">Sistema de Muelle</h1>
+          <p class="text-xs text-zinc-500 mt-0.5 hidden sm:block">Manual Operativo &amp; Transacciones</p>
+        </div>
+      </div>
+
+      <!-- Buscador en tiempo real -->
+      <div class="relative flex-1 max-w-md">
+        <svg class="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Buscar proceso, transacción (ej. MIGO_GO, ZMIR7)..."
+          class="w-full pl-10 pr-8 py-2 text-sm bg-zinc-100/80 border border-transparent focus:border-zinc-300 focus:bg-white rounded-xl outline-none transition-all placeholder:text-zinc-400"
+        />
+        <button id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 text-xs font-medium px-1.5 py-0.5 rounded">
+          ESC
+        </button>
+      </div>
+
+      <!-- Botón reset checklists -->
+      <button
+        id="resetChecklistBtn"
+        title="Reiniciar todos los checklists"
+        class="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-zinc-600 hover:text-zinc-900 bg-zinc-100 hover:bg-zinc-200/70 px-3 py-2 rounded-lg transition-colors"
+      >
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Reiniciar checks
+      </button>
+    </div>
+  </header>
+
+  <!-- Layout Principal -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex gap-8">
+
+    <!-- Sidebar Navegación (Desktop) -->
+    <aside class="hidden lg:block w-64 shrink-0">
+      <div class="sticky top-24 space-y-6">
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 px-3 mb-2">Accesos</p>
+          <a href="#usuarios" class="nav-link flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            Directorio de Usuarios
+          </a>
+        </div>
+
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 px-3 mb-2">Procedimientos (<span id="topicCount">13</span>)</p>
+          <nav id="desktopNav" class="space-y-0.5 max-h-[calc(100vh-14rem)] overflow-y-auto pr-1"></nav>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Drawer Móvil -->
+    <div id="mobileDrawer" class="fixed inset-0 z-50 hidden lg:hidden">
+      <div id="drawerBackdrop" class="fixed inset-0 bg-zinc-900/40 backdrop-blur-xs"></div>
+      <div class="relative w-72 max-w-[80vw] bg-white h-full shadow-xl p-5 flex flex-col">
+        <div class="flex items-center justify-between pb-4 border-b border-zinc-100">
+          <span class="font-semibold text-sm text-zinc-900">Índice de Procesos</span>
+          <button id="closeDrawerBtn" class="p-1.5 text-zinc-500 hover:text-zinc-800 rounded-lg">✕</button>
+        </div>
+        <div class="py-4 overflow-y-auto flex-1 space-y-4">
+          <a href="#usuarios" class="mobile-nav-link block px-3 py-2 text-sm font-medium text-emerald-700 bg-emerald-50/70 rounded-lg">
+            🔑 Directorio de Usuarios
+          </a>
+          <nav id="mobileNav" class="space-y-1"></nav>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 min-w-0 space-y-10 pb-20">
+
+      <!-- Sección 0: Directorio de Usuarios y Credenciales -->
+      <section id="usuarios" class="scroll-mt-24">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-4">
+          <div>
+            <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-2.5 py-0.5 rounded-full mb-2">
+              Credenciales Operativas
+            </span>
+            <h2 class="text-xl font-bold text-zinc-900 tracking-tight">Usuarios y Accesos del Sistema</h2>
+            <p class="text-sm text-zinc-500 mt-0.5">Haz clic en cualquier usuario o contraseña para copiarlo al portapapeles.</p>
+          </div>
+        </div>
+
+        <div id="usersGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5"></div>
+      </section>
+
+      <hr class="border-zinc-200/80" />
+
+      <!-- Sección de Procedimientos -->
+      <section class="space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-zinc-900 tracking-tight">Guía de Procesos por Área</h2>
+            <p class="text-sm text-zinc-500 mt-0.5">Marca cada paso conforme avances en tu turno. El progreso se guarda en este navegador.</p>
+          </div>
+          <span id="filterStatus" class="hidden text-xs font-medium text-zinc-500 bg-zinc-100 px-3 py-1.5 rounded-full"></span>
+        </div>
+
+        <div id="topicsContainer" class="space-y-5"></div>
+
+        <!-- Estado vacío cuando no hay resultados -->
+        <div id="emptyState" class="hidden text-center py-16 bg-white border border-zinc-200/80 rounded-2xl">
+          <p class="text-zinc-900 font-medium">No se encontraron coincidencias</p>
+          <p class="text-sm text-zinc-500 mt-1">Intenta buscar con otra palabra clave, proveedor o código de transacción.</p>
+          <button id="resetSearchEmpty" class="mt-4 text-xs font-medium bg-zinc-900 text-white px-4 py-2 rounded-lg hover:bg-zinc-800 transition-colors">
+            Mostrar todos los temas
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Toast Notificación de Copiado -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-16 opacity-0 transition-all duration-200 pointer-events-none">
+    <div class="bg-zinc-900 text-white text-xs font-medium px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2">
+      <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+      </svg>
+      <span id="toastText">Copiado al portapapeles</span>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. DATOS DEL MANUAL (Extraídos del PDF)
+    // ==========================================
+    const USERS_DATA = [
+      {
+        role: "Catálogos y Órdenes de Compra",
+        module: "SAP HANA",
+        user: "U0092AD18",
+        pass: "Octubre.2026",
+        notes: "Acceso principal para ZMIN Global 1, layout 05 e impresión de órdenes."
+      },
+      {
+        role: "Mermas / Inventario No Planificado",
+        module: "Tlaon / SAP (JD52)",
+        user: "U0092jd52",
+        pass: "Refrescos2027..",
+        notes: "Usuario corto: JD52. Para captura de merma (máx. $1,000 MXN/día) y MIN07."
+      },
+      {
+        role: "Consumos Internos (Fabián)",
+        module: "SAP (AD08)",
+        user: "U0092AD08",
+        pass: "Noviembre.2026",
+        notes: "Usuario corto: Ad08. Para transacción ZSOL (entrega y confirmación de solicitudes)."
+      },
+      {
+        role: "Facturas Manuales",
+        module: "SAP (AD18)",
+        user: "Ad18",
+        pass: "Consultar clave en turno",
+        notes: "Para ingresar facturas manuales en transacción ZMIR7 (Sociedad S01)."
+      },
+      {
+        role: "Escritorio Remoto / XML / EDIS",
+        module: "Windows / ASP SaaS",
+        user: "U092AD02",
+        pass: "Noviembre.2026**",
+        notes: "Conexión a escritorio remoto de Windows para descarga de correo y portal EDIS."
+      },
+      {
+        role: "Transferencias / Reimpresiones",
+        module: "SAP (JD25)",
+        user: "jd25",
+        pass: "Recibos2026.",
+        notes: "Para traslados entre tiendas (ej. Resurrección 0313) y orden de impresión SP02."
+      },
+      {
+        role: "Chequeo de Mercado / Tarimas CHEP",
+        module: "Portal Vital / Embalaje",
+        user: "Usuario vital",
+        pass: "Acceso directo en terminal",
+        notes: "Competencia Bodega Aurrera 21720 y salida/reserva de tarima CHEP (1015191)."
+      }
+    ];
+
+    const TOPICS_DATA = [
+      {
+        id: "catalogos-oc",
+        number: "01",
+        title: "Catálogos y Órdenes de Compra (SAP HANA)",
+        category: "Abasto y Compras",
+        tcodes: ["SAP HANA", "ZMIN Global 1", "Layout 05"],
+        alerts: [
+          { type: "info", text: "Impresora asignada: 53 | Configuración: Sin escalado y ajustar todas las columnas en 1 página." }
+        ],
+        steps: [
+          "Dar doble clic en SAP HANA e ingresar con usuario U0092AD18.",
+          "Entrar a ZMIN Global 1 para catálogos y escribir 05 en el campo Layout.",
+          "Ingresar el número del proveedor en el campo Proveedor y presionar el ícono del reloj (Ejecutar).",
+          "Verificar si se requieren existencias u órdenes de compra. Si es orden de compra: filtrar Estatus 'RL' y marcar 'Sí' (palomita verde).",
+          "Ir a Lista → Exportar → Hoja de cálculo (Excel por defecto). Guardar y dar en 'Permitir' dos veces.",
+          "En el Excel generado, eliminar columnas innecesarias: Post, Centro, Grupo A (dejar Bloqueo de compra como Sugerido).",
+          "En 'Semana de suministro', aplicar filtro de menor a mayor y eliminar las filas que estén en 0.",
+          "Aplicar todos los bordes/recuadros, seleccionar impresora 53, sin escalado, ajustar todas las columnas en una página e imprimir."
+        ]
+      },
+      {
+        id: "catalogo-excepciones",
+        number: "02",
+        title: "Catálogo OC: Excepciones LALA y Aguascalientes",
+        category: "Abasto y Compras",
+        tcodes: ["ZMIN", "Filtro RL", "Clave 10"],
+        alerts: [
+          { type: "warning", text: "Si los días de inventario superan los 14 días, remarcar en color GRIS. Si aun así lo requieren, exige autorización por Clave 10." }
+        ],
+        steps: [
+          "Seguir los pasos base de ZMIN Global 1, pero antes de filtrar el estatus para LALA o AGUASCALIENTES: dar clic derecho en 'Grupo Art.' → Clasificación ascendente.",
+          "Filtrar Status y Catálogo en 'RL' y seleccionar 'Sí'.",
+          "Renombrar la columna 'Bloque de compra' por 'Sugerido' y 'Semana de suministro' por 'Días inventario'.",
+          "Conservar únicamente: Artículo, UPC/UPS, Sugerido, Piezas de empaque, Proveedor y su nombre, Existencias y Días de inventario.",
+          "Separar el Status. Arriba de UPS agregar la fecha y en descripción agregar el nombre y proveedor.",
+          "Revisar antigüedad: si pasa de 14 días, remarcar en gris y solicitar autorización con Clave 10 si se va a pedir.",
+          "Dar en impresión de prueba y seleccionar la impresora correspondiente."
+        ]
+      },
+      {
+        id: "liberacion-visualizacion",
+        number: "03",
+        title: "Liberación y Visualización de Pedidos",
+        category: "Abasto y Compras",
+        tcodes: ["Código Cm", "XNEW"],
+        alerts: [
+          { type: "info", text: "Excepción Modelo: Cuando el gerente pide mucha cantidad, la liberación se hace directamente con el usuario del gerente." }
+        ],
+        steps: [
+          "Entrar al formato de Liberación de pedido y seleccionar el código de liberación 'Cm'.",
+          "Anotar el número de pedido (el que se apunta con lapicero) y dar clic al reloj.",
+          "Revisar todo lo solicitado y marcar como liberado. Si hay diferencias, marcar una 'X' o anotar si es menor cantidad.",
+          "Una vez modificado, confirmar en la palomita verde y regresar.",
+          "Entrar a 'Visualizar órdenes de pedidos' (se llena en automático; si está vacío, escribir el número anotado con lapicero) y dar al reloj.",
+          "Dar clic siempre en 'XNEW' y luego en el recuadro de la izquierda para visualizar el documento."
+        ]
+      },
+      {
+        id: "merma-impresion",
+        number: "04",
+        title: "Registro e Impresión de Merma y Liquidación",
+        category: "Control de Inventarios",
+        tcodes: ["Tlaon", "MIGO_GO", "WA01 → ZA03"],
+        alerts: [
+          { type: "danger", text: "Límite estricto: No exceder $1,000 MXN de merma al día. Horarios: 8:00 a 11:00 AM y por la tarde hasta las 5:00 PM." },
+          { type: "warning", text: "Firmas: Merma, donación y transferencias requieren firma de un Clave + tu firma. Liquidación requiere 3 firmas (Clave verde, Gerente/Clave y Encargada de abarrotes, o en su ausencia Edmundo o Jasmin)." }
+        ],
+        steps: [
+          "Ingresar a Tlaon con usuario JD52 (U0092jd52) y entrar al área de Merma.",
+          "Escanear el código de barras del producto, ingresar la cantidad, seleccionar y validar el motivo, y dar clic en OK (si es de proveedor, no debe verse superficial y se debe consultar al proveedor).",
+          "Para imprimir en SAP: abrir transacción MIGO_GO, dar clic en la palomita verde, ingresar el folio y presionar Enter dos veces.",
+          "Ir a Mensajes → Visualizar mensajes. Seleccionar WA01, eliminarlo (Delete) y cambiarlo por ZA03.",
+          "Configurar Salida en impresora, Idioma 'ES', Medio de comunicación y Destino lógico 'Local' → Salida en impresión.",
+          "Regresar, dar en Grabar dos veces y seleccionar impresora para sacar 2 copias (una propia y una para Prevención)."
+        ]
+      },
+      {
+        id: "recibir-mercancia",
+        number: "05",
+        title: "Recepción de Mercancía en Muelle",
+        category: "Recibo y Andén",
+        tcodes: ["Var Code", "SAP Mensajes"],
+        alerts: [
+          { type: "info", text: "Siempre seleccionar el ID que indica 'Orden de compra' y resguardar el folio generado al contabilizar." }
+        ],
+        steps: [
+          "Entrar al módulo 'Recibir productos' e introducir el ID correspondiente a la Orden de Compra.",
+          "Al desplegarse los datos de la orden, seleccionar la opción 'Var code'.",
+          "Ir a SAP → Visualizar mensajes de pedidos → Visualizar mensaje para verificar los productos.",
+          "Escanear o ingresar el código de barras y capturar la cantidad recibida; confirmar con OK.",
+          "Dar clic en 'Contabilizar', esperar a que el sistema genere el folio y anotarlo/procurarlo."
+        ]
+      },
+      {
+        id: "chequeo-mercado",
+        number: "06",
+        title: "Chequeo de Mercado (Competencia)",
+        category: "Operación Comercial",
+        tcodes: ["Usuario Vital", "Aurrera 21720"],
+        alerts: [
+          { type: "info", text: "Validar que el ticket seleccionado tenga inicio y final iguales antes de procesar." }
+        ],
+        steps: [
+          "Ingresar con Usuario Vital al módulo de Chequeo de mercado.",
+          "En competencia, seleccionar 'Bodega Aurrera 21720'.",
+          "Seleccionar el ticket verificando que tenga inicio y final iguales, y revisar cantidades y precios.",
+          "Seleccionar en medio, capturar código por código, escanear, verificar los datos y dar en 'Procesar'.",
+          "Al finalizar la captura, dar clic en Grabar y confirmar con OK dos veces."
+        ]
+      },
+      {
+        id: "ordenes-compra-zcc",
+        number: "07",
+        title: "Carga de Órdenes de Compra (Control de Muelle)",
+        category: "Recibo y Andén",
+        tcodes: ["ZCC Control de Muelle", "F8", "Código Cm"],
+        alerts: [
+          { type: "danger", text: "Vigencia de fechas: Del día en que se realizó hasta 5 días después; si pasa ese plazo ya no sirve." }
+        ],
+        steps: [
+          "Con la hoja física en mano, ingresar a 'ZCC Control de muelle y carga de archivos'.",
+          "Verificar que la fecha esté dentro del rango vigente (máximo 5 días desde su creación).",
+          "Iniciar siempre capturando el Proveedor seguido de los artículos (usar tecla Tab) e ingresar las cantidades presionando Enter.",
+          "Verificar semáforo: si sale punto verde dejarlo así; si sale punto rojo, ir a 'Texto de mensaje' y escribir el motivo.",
+          "Cuando todos los puntos estén en verde, presionar F8, confirmar que 'Sí' y adjuntar/abortar en la hoja con firmas.",
+          "Regresar a Liberar pedido (Código Cm + número de pedido), confirmar palomita, visualizar mensajes y sacar impresión de prueba verificando cantidades."
+        ]
+      },
+      {
+        id: "tarimas-chep",
+        number: "08",
+        title: "Salida y Devolución de Tarimas CHEP",
+        category: "Control de Embalaje",
+        tcodes: ["Art. 1015191", "MIGO_GO", "Z03"],
+        alerts: [
+          { type: "warning", text: "Días permitidos de salida: Lunes y Miércoles máximo 60 tarimas. Viernes se puede llevar todo lo que se pueda." }
+        ],
+        steps: [
+          "Para Salida: entrar a 'Salida de artículos de embalaje' (o para Devolución: 'Reserva de artículos de embalaje' → Cancelar) con código 1015191 (Tarima CHEP azul).",
+          "Ingresar la cantidad respetando el límite del día (60 los lunes/miércoles; libre los viernes).",
+          "Seleccionar 'Vale material CHEP', escribir en tipo de texto 'Tarima CHEP', guardar y copiar el folio/código generado.",
+          "Ingresar a SAP → transacción MIGO_GO, pegar el folio y dar doble Enter.",
+          "Ir a Mensajes → Visualizar mensajes → seleccionar clase Z03, Salida de impresora, idioma 'ES', medio de comunicación y destino 'Local'.",
+          "Regresar una vez, dar en Guardar 2 veces e imprimir las 2 hojas correspondientes."
+        ]
+      },
+      {
+        id: "consumos-internos",
+        number: "09",
+        title: "Alta de Consumos Internos",
+        category: "Control de Inventarios",
+        tcodes: ["ZSOL", "U0092AD08"],
+        alerts: [
+          { type: "info", text: "Este proceso requiere cambiar al usuario Ad08 (U0092AD08). No es obligatorio imprimir al finalizar." }
+        ],
+        steps: [
+          "Abrir SAP e iniciar sesión con el usuario U0092AD08 (Fabián).",
+          "Ingresar a la transacción ZSOL (Entrega, confirmación y entrega de solicitudes).",
+          "En 'Solicitud Cl', ingresar el número proporcionado y dar clic en el reloj.",
+          "Capturar únicamente las piezas que realmente se entregaron.",
+          "Dar clic en 'Guardar' y 'Guardar cambios' para que quede registrado en el sistema."
+        ]
+      },
+      {
+        id: "liquidacion-productos",
+        number: "10",
+        title: "Búsqueda de SKU para Liquidación",
+        category: "Operación Comercial",
+        tcodes: ["Distribución", "Excel"],
+        alerts: [],
+        steps: [
+          "Entrar al módulo de Liquidación de mercancía → 'Buscar productos distribución'.",
+          "Ingresar los códigos de los artículos y dar clic en la lupa.",
+          "Copiar el SKU resultante y pegarlo en la plantilla de Excel junto con su descripción."
+        ]
+      },
+      {
+        id: "facturas-manuales",
+        number: "11",
+        title: "Registro de Facturas Manuales",
+        category: "Facturación y Proveedores",
+        tcodes: ["ZMIR7", "Sociedad S01", "Ad18"],
+        alerts: [
+          { type: "warning", text: "NO entran en factura manual: Pepsico, Sigma, La Patrona, Harinera Nacional, Aguascalientes, Promimex ni Lala. SÍ entran: Rivera de Blanquillo y Fruta Mía (Proteína animal va aparte)." }
+        ],
+        steps: [
+          "Entrar a SAP con el usuario Ad18 e ingresar a la transacción ZMIR7.",
+          "En Sociedad colocar 'S01' y dar palomita verde; realizar conteo rápido.",
+          "Verificar la fecha e ingresar: Referencia (RFC del proveedor), Importe total a pagar, Texto (folio), Folio fiscal y Orden de compra; presionar Enter.",
+          "Confirmar que el indicador se ponga en color verde.",
+          "Dar en 'Grabar completamente'; la pantalla se limpiará y aparecerá el número de documento en la parte inferior."
+        ]
+      },
+      {
+        id: "xml-edis-faltantes",
+        number: "12",
+        title: "Portal EDIS (XML) y Faltantes Locales",
+        category: "Facturación y Proveedores",
+        tcodes: ["Escritorio Remoto", "ASP EDIS SaaS", "Tienda 1110p"],
+        alerts: [
+          { type: "info", text: "Datos de tienda para faltantes: Formato Chedraui CD | Región Pacífico | Zona Puebla | Tienda Chedraui Xonaca 1110p." }
+        ],
+        steps: [
+          "Abrir Accesorios de Windows → Conectar a Escritorio Remoto usando U092AD02.",
+          "Primer paso obligatorio: revisar el correo electrónico y descargar todos los archivos adjuntos.",
+          "Entrar a 'ASP Aplicación EDIS SaaS' → Acceder → Entrada → Importar documentos.",
+          "Seleccionar todos los archivos EXCEPTO el Excel, mandarlos a la nube en automático, verificar que todos tengan palomita verde y cerrar.",
+          "Ir a 'Salida' → 'No enviados', dar clic en 'Solicitado', bajar al final de la ventana, pegar la Orden de Compra y el Folio donde indica el sistema y dar en 'Enviar'.",
+          "Para Faltantes locales: entrar a Gestor de proveedor local (3 anclaje) y seleccionar Formato Chedraui Cd, Región Pacífico, Zona Puebla, Tienda Chedraui Xonaca 1110p."
+        ]
+      },
+      {
+        id: "transferencias-devoluciones-inv",
+        number: "13",
+        title: "Transferencias, Devoluciones e Inventario No Planificado",
+        category: "Movimientos Especiales",
+        tcodes: ["SAP jd25", "SP02", "NetWeaver", "MIN07"],
+        alerts: [
+          { type: "warning", text: "Copias de impresión: SP02 requiere 3 copias de cada uno. Visualizar pedido de devolución requiere 5 hojas para Prevención." }
+        ],
+        steps: [
+          "Transferencias: Ir a 'Crear traslado' → Categoría centro receptor: Punto de venta → Centro receptor: número de tienda (ej. Resurrección es 0313). Motivo: 'Excedente de merca', Nota: 'Transferencia' → Crear, añadir productos con '+', Enviar y OK.",
+          "Impresión SP02: Entrar a SAP con usuario jd25, ejecutar SP02 para dar orden correcto y sacar 3 copias de cada uno.",
+          "Devoluciones (SAP NetWeaver): Ir a Movimientos de mercancía → cambiar 'Salida' a 'Devolución local', Procesar, elegir motivo, capturar número de proveedor y código de artículo (si está abierta deja pasar). Poner cantidad (ctd), grabar y anotar folio (hacer por separado si es distinto proveedor).",
+          "Liberar y Contabilizar Devolución en SAP: Ingresar folio en 'Devolución a proveedores' → Ejecutar (reloj) → anotar nuevo número. Ir a 'Monitor de devolución' → Contabilizar devolución → Marcar todo → Ejecutar → dar motivo y anotar los primeros 10 dígitos.",
+          "Impresión Prevención: Ir a 'Visualizar pedido' + Fecha de creación → Ejecutar e imprimir 5 hojas para Prevención (en Operación de tienda capturar documento y año arriba).",
+          "Modificación de Inventario: Entrar a 'Inventario no planificado', ingresar código y cantidad → OK, copiar número. Abrir SAP de Chío (u0092jd52), entrar a MIN07, ingresar número de contabilización y copiar el folio final."
+        ]
+      }
+    ];
+
+    // ==========================================
+    // 2. RENDERIZADO Y LÓGICA DE INTERFAZ
+    // ==========================================
+    const STORAGE_KEY = 'muelle_sap_checklist_v1';
+    let checkedSteps = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+
+    function saveChecklistState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(checkedSteps));
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const toastText = document.getElementById('toastText');
+      toastText.textContent = message;
+      toast.classList.remove('translate-y-16', 'opacity-0');
+      clearTimeout(window.toastTimeout);
+      window.toastTimeout = setTimeout(() => {
+        toast.classList.add('translate-y-16', 'opacity-0');
+      }, 2200);
+    }
+
+    function copyText(text, label) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(`${label} copiado: ${text}`);
+      });
+    }
+
+    // Renderizar Tarjetas de Usuarios
+    function renderUsers() {
+      const grid = document.getElementById('usersGrid');
+      grid.innerHTML = USERS_DATA.map(u => `
+        <div class="bg-white border border-zinc-200/90 rounded-xl p-4 hover:border-zinc-300 transition-all shadow-2xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="text-[11px] font-mono font-medium text-zinc-600 bg-zinc-100 px-2 py-0.5 rounded-md">
+                ${u.module}
+              </span>
+            </div>
+            <h3 class="text-sm font-semibold text-zinc-900 leading-snug">${u.role}</h3>
+            <p class="text-xs text-zinc-500 mt-1 leading-relaxed">${u.notes}</p>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-zinc-100 space-y-2">
+            <div class="flex items-center justify-between bg-zinc-50 px-2.5 py-1.5 rounded-lg border border-zinc-200/60">
+              <div class="text-xs">
+                <span class="text-zinc-400 mr-1.5">USR:</span>
+                <span class="font-mono font-semibold text-zinc-800">${u.user}</span>
+              </div>
+              <button onclick="copyText('${u.user}', 'Usuario')" class="text-[11px] font-medium text-brand-600 hover:text-brand-700 px-1.5 py-0.5 rounded hover:bg-brand-50 transition-colors">
+                Copiar
+              </button>
+            </div>
+
+            <div class="flex items-center justify-between bg-zinc-50 px-2.5 py-1.5 rounded-lg border border-zinc-200/60">
+              <div class="text-xs truncate pr-2">
+                <span class="text-zinc-400 mr-1.5">PWD:</span>
+                <span class="font-mono font-medium text-zinc-700">${u.pass}</span>
+              </div>
+              ${!u.pass.includes('Consultar') && !u.pass.includes('Acceso') ? `
+                <button onclick="copyText('${u.pass}', 'Contraseña')" class="shrink-0 text-[11px] font-medium text-brand-600 hover:text-brand-700 px-1.5 py-0.5 rounded hover:bg-brand-50 transition-colors">
+                  Copiar
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Renderizar Navegación Lateral
+    function renderNavigation(topics) {
+      const desktopNav = document.getElementById('desktopNav');
+      const mobileNav = document.getElementById('mobileNav');
+      document.getElementById('topicCount').textContent = topics.length;
+
+      const linksHTML = topics.map(t => `
+        <a href="#${t.id}" class="nav-item flex items-center gap-2.5 px-3 py-1.5 text-xs font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors">
+          <span class="font-mono text-[10px] text-zinc-400">${t.number}</span>
+          <span class="truncate">${t.title}</span>
+        </a>
+      `).join('');
+
+      desktopNav.innerHTML = linksHTML;
+      mobileNav.innerHTML = linksHTML;
+
+      // Cerrar drawer móvil al hacer clic
+      mobileNav.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+          document.getElementById('mobileDrawer').classList.add('hidden');
+        });
+      });
+    }
+
+    // Renderizar Tarjetas de Temas
+    function renderTopics(filterQuery = '') {
+      const container = document.getElementById('topicsContainer');
+      const emptyState = document.getElementById('emptyState');
+      const filterStatus = document.getElementById('filterStatus');
+      const q = filterQuery.trim().toLowerCase();
+
+      const filtered = TOPICS_DATA.filter(topic => {
+        if (!q) return true;
+        const inTitle = topic.title.toLowerCase().includes(q);
+        const inCategory = topic.category.toLowerCase().includes(q);
+        const inCodes = topic.tcodes.some(c => c.toLowerCase().includes(q));
+        const inSteps = topic.steps.some(s => s.toLowerCase().includes(q));
+        const inAlerts = topic.alerts.some(a => a.text.toLowerCase().includes(q));
+        return inTitle || inCategory || inCodes || inSteps || inAlerts;
+      });
+
+      if (q) {
+        filterStatus.classList.remove('hidden');
+        filterStatus.textContent = `${filtered.length} de ${TOPICS_DATA.length} temas`;
+      } else {
+        filterStatus.classList.add('hidden');
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      container.innerHTML = filtered.map(topic => {
+        const completedCount = topic.steps.filter((_, idx) => checkedSteps[`${topic.id}-${idx}`]).length;
+        const totalSteps = topic.steps.length;
+        const isAllDone = completedCount === totalSteps && totalSteps > 0;
+
+        const alertsHTML = topic.alerts.map(alert => {
+          const styles = {
+            danger: 'bg-red-50/90 border-red-200/80 text-red-900',
+            warning: 'bg-amber-50/90 border-amber-200/80 text-amber-900',
+            info: 'bg-sky-50/90 border-sky-200/80 text-sky-900'
+          };
+          const icons = {
+            danger: '⚠️',
+            warning: '⚡',
+            info: 'ℹ️'
+          };
+          return `
+            <div class="flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl border text-xs leading-relaxed ${styles[alert.type]}">
+              <span class="shrink-0 mt-0.5">${icons[alert.type]}</span>
+              <span>${alert.text}</span>
+            </div>
+          `;
+        }).join('');
+
+        const stepsHTML = topic.steps.map((step, idx) => {
+          const stepKey = `${topic.id}-${idx}`;
+          const isChecked = !!checkedSteps[stepKey];
+          return `
+            <label class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-zinc-50 cursor-pointer transition-colors group">
+              <input
+                type="checkbox"
+                data-key="${stepKey}"
+                ${isChecked ? 'checked' : ''}
+                class="step-checkbox mt-0.5 w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 cursor-pointer"
+              />
+              <span class="step-text text-sm text-zinc-700 leading-relaxed select-none transition-colors">
+                <span class="font-mono text-xs text-zinc-400 mr-1.5">${idx + 1}.</span>${step}
+              </span>
+            </label>
+          `;
+        }).join('');
+
+        return `
+          <article id="${topic.id}" class="scroll-mt-24 bg-white border ${isAllDone ? 'border-emerald-300/80' : 'border-zinc-200/90'} rounded-2xl p-5 sm:p-6 shadow-2xs transition-all">
+            <div class="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-zinc-100">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-mono text-xs font-semibold text-zinc-400">#${topic.number}</span>
+                  <span class="text-xs font-medium text-zinc-500">${topic.category}</span>
+                </div>
+                <h3 class="text-lg font-bold text-zinc-900 tracking-tight">${topic.title}</h3>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-1.5">
+                ${topic.tcodes.map(code => `
+                  <span class="font-mono text-[11px] font-medium bg-zinc-100 text-zinc-700 border border-zinc-200/70 px-2.5 py-0.5 rounded-md">
+                    ${code}
+                  </span>
+                `).join('')}
+                <span class="ml-1 text-xs font-mono font-medium px-2.5 py-0.5 rounded-full ${isAllDone ? 'bg-emerald-100 text-emerald-800' : 'bg-zinc-100 text-zinc-500'}">
+                  ${completedCount}/${totalSteps}
+                </span>
+              </div>
+            </div>
+
+            ${alertsHTML ? `<div class="mt-4 space-y-2">${alertsHTML}</div>` : ''}
+
+            <div class="mt-4 space-y-1">
+              ${stepsHTML}
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      // Listeners para los checkboxes
+      container.querySelectorAll('.step-checkbox').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+          const key = e.target.dataset.key;
+          if (e.target.checked) {
+            checkedSteps[key] = true;
+          } else {
+            delete checkedSteps[key];
+          }
+          saveChecklistState();
+          renderTopics(document.getElementById('searchInput').value);
+        });
+      });
+    }
+
+    // ==========================================
+    // 3. EVENTOS GLOBALES
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', () => {
+      renderUsers();
+      renderNavigation(TOPICS_DATA);
+      renderTopics();
+
+      const searchInput = document.getElementById('searchInput');
+      const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+      searchInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        clearSearchBtn.classList.toggle('hidden', !val);
+        renderTopics(val);
+      });
+
+      clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        clearSearchBtn.classList.add('hidden');
+        renderTopics('');
+        searchInput.focus();
+      });
+
+      document.getElementById('resetSearchEmpty').addEventListener('click', () => {
+        searchInput.value = '';
+        clearSearchBtn.classList.add('hidden');
+        renderTopics('');
+      });
+
+      // Atajo teclado ESC para limpiar búsqueda
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.activeElement === searchInput) {
+          searchInput.value = '';
+          clearSearchBtn.classList.add('hidden');
+          renderTopics('');
+        }
+      });
+
+      // Reiniciar checklists
+      document.getElementById('resetChecklistBtn').addEventListener('click', () => {
+        checkedSteps = {};
+        saveChecklistState();
+        renderTopics(searchInput.value);
+        showToast('Todos los checklists reiniciados');
+      });
+
+      // Menú móvil
+      const mobileDrawer = document.getElementById('mobileDrawer');
+      document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+        mobileDrawer.classList.remove('hidden');
+      });
+      document.getElementById('closeDrawerBtn').addEventListener('click', () => {
+        mobileDrawer.classList.add('hidden');
+      });
+      document.getElementById('drawerBackdrop').addEventListener('click', () => {
+        mobileDrawer.classList.add('hidden');
+      });
+    });
+  </script>
+</body>
+</html>
