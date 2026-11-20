@@ -127,7 +127,7 @@
     </div>
   </header>
 
-  <!-- Modal de Instrucciones de Instalación (Fallback para iOS / Navegadores sin prompt automático) -->
+  <!-- Modal de Instrucciones de Instalación -->
   <div id="installModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
     <div id="installModalBackdrop" class="fixed inset-0 bg-zinc-900/50 backdrop-blur-xs"></div>
     <div class="relative bg-white border border-zinc-200 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
@@ -144,9 +144,7 @@
         <button id="closeInstallModal" class="text-zinc-400 hover:text-zinc-700 p-1">✕</button>
       </div>
 
-      <div id="installInstructions" class="text-xs text-zinc-600 space-y-3 bg-zinc-50 p-3.5 rounded-xl border border-zinc-200/70 leading-relaxed">
-        <!-- Se llena dinámicamente según el sistema operativo -->
-      </div>
+      <div id="installInstructions" class="text-xs text-zinc-600 space-y-3 bg-zinc-50 p-3.5 rounded-xl border border-zinc-200/70 leading-relaxed"></div>
 
       <button id="confirmInstallModal" class="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-xl transition-colors">
         Entendido
@@ -169,7 +167,7 @@
         </div>
 
         <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 px-3 mb-2">Procedimientos (<span id="topicCount">13</span>)</p>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 px-3 mb-2">Procedimientos (<span id="topicCount">15</span>)</p>
           <nav id="desktopNav" class="space-y-0.5 max-h-[calc(100vh-14rem)] overflow-y-auto pr-1"></nav>
         </div>
       </div>
@@ -198,36 +196,48 @@
     </div>
 
     <!-- Contenido Principal -->
-    <main class="flex-1 min-w-0 space-y-10 pb-20">
+    <main class="flex-1 min-w-0 space-y-8 pb-20">
 
-      <!-- Sección 0: Directorio de Usuarios y Credenciales -->
-      <section id="usuarios" class="scroll-mt-24">
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-4">
-          <div>
-            <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-2.5 py-0.5 rounded-full mb-2">
-              Credenciales Operativas
-            </span>
-            <h2 class="text-xl font-bold text-zinc-900 tracking-tight">Usuarios y Accesos del Sistema</h2>
-            <p class="text-sm text-zinc-500 mt-0.5">Haz clic en cualquier usuario o contraseña para copiarlo al portapapeles.</p>
+      <!-- Sección 0: Directorio de Usuarios y Credenciales (Colapsable) -->
+      <section id="usuarios" class="scroll-mt-24 bg-white border border-zinc-200/90 rounded-2xl shadow-2xs overflow-hidden">
+        <button
+          id="toggleUsersBtn"
+          type="button"
+          class="w-full flex items-center justify-between gap-4 p-5 sm:px-6 text-left hover:bg-zinc-50/80 transition-colors cursor-pointer"
+        >
+          <div class="flex items-center gap-3">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-zinc-900 tracking-tight">Usuarios y Accesos del Sistema</h2>
+              <p class="text-xs text-zinc-500 mt-0.5">Toca para ver credenciales y copiar usuarios o contraseñas</p>
+            </div>
           </div>
-        </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="hidden sm:inline-block text-xs font-mono font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/70 px-2.5 py-0.5 rounded-full">
+              7 accesos
+            </span>
+            <svg id="usersChevron" class="w-5 h-5 text-zinc-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </div>
+        </button>
 
-        <div id="usersGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5"></div>
+        <div id="usersPanel" class="hidden border-t border-zinc-100 p-5 sm:p-6 bg-zinc-50/40">
+          <div id="usersGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5"></div>
+        </div>
       </section>
 
-      <hr class="border-zinc-200/80" />
-
       <!-- Sección de Procedimientos -->
-      <section class="space-y-6">
+      <section class="space-y-4">
         <div class="flex items-center justify-between">
           <div>
-            <h2 class="text-xl font-bold text-zinc-900 tracking-tight">Guía de Procesos por Área</h2>
-            <p class="text-sm text-zinc-500 mt-0.5">Marca cada paso conforme avances en tu turno. El progreso se guarda en este dispositivo.</p>
+            <h2 class="text-lg sm:text-xl font-bold text-zinc-900 tracking-tight">Procesos Operativos</h2>
+            <p class="text-xs sm:text-sm text-zinc-500 mt-0.5">Selecciona un proceso para desplegar sus pasos y alertas.</p>
           </div>
           <span id="filterStatus" class="hidden text-xs font-medium text-zinc-500 bg-zinc-100 px-3 py-1.5 rounded-full"></span>
         </div>
 
-        <div id="topicsContainer" class="space-y-5"></div>
+        <div id="topicsContainer" class="space-y-2.5"></div>
 
         <!-- Estado vacío cuando no hay resultados -->
         <div id="emptyState" class="hidden text-center py-16 bg-white border border-zinc-200/80 rounded-2xl">
@@ -254,10 +264,9 @@
 
   <script>
     // ==========================================
-    // 0. CONFIGURACIÓN PWA (Manifest + Service Worker en 1 archivo)
+    // 0. CONFIGURACIÓN PWA
     // ==========================================
     (function setupPWA() {
-      // Icono SVG codificado en Base64 para Android e iOS
       const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
         <rect width="512" height="512" rx="112" fill="#18181b"/>
         <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-family="monospace" font-weight="bold" font-size="165">SAP</text>
@@ -266,7 +275,6 @@
       const iconUrl = 'data:image/svg+xml;base64,' + btoa(svgIcon);
       document.getElementById('appleTouchIcon').href = iconUrl;
 
-      // Generar Manifest dinámico
       const manifest = {
         name: "Sistema de Muelle - Guía SAP",
         short_name: "Muelle SAP",
@@ -276,33 +284,18 @@
         background_color: "#fafafa",
         theme_color: "#18181b",
         orientation: "portrait",
-        icons: [
-          {
-            src: iconUrl,
-            sizes: "512x512",
-            type: "image/svg+xml",
-            purpose: "any maskable"
-          }
-        ]
+        icons: [{ src: iconUrl, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }]
       };
 
       const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
       document.getElementById('pwaManifest').href = URL.createObjectURL(manifestBlob);
 
-      // Registrar Service Worker para caché offline
       if ('serviceWorker' in navigator) {
         const swCode = `
-          const CACHE_NAME = 'muelle-sap-v1';
-          self.addEventListener('install', (e) => {
-            self.skipWaiting();
-          });
-          self.addEventListener('activate', (e) => {
-            e.waitUntil(clients.claim());
-          });
+          self.addEventListener('install', (e) => self.skipWaiting());
+          self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
           self.addEventListener('fetch', (e) => {
-            e.respondWith(
-              fetch(e.request).catch(() => caches.match(e.request))
-            );
+            e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
           });
         `;
         const swBlob = new Blob([swCode], { type: 'application/javascript' });
@@ -316,7 +309,6 @@
     const installModal = document.getElementById('installModal');
     const installInstructions = document.getElementById('installInstructions');
 
-    // Ocultar botón si ya está abierta como app instalada
     if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
       installAppBtn.classList.add('hidden');
     }
@@ -337,31 +329,24 @@
       if (deferredPrompt) {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          deferredPrompt = null;
-        }
+        if (outcome === 'accepted') deferredPrompt = null;
       } else {
-        // Detectar si es iOS o navegador sin prompt automático
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        if (isIOS) {
-          installInstructions.innerHTML = `
-            <p class="font-semibold text-zinc-900">En iPhone / iPad (Safari):</p>
-            <ol class="list-decimal pl-4 space-y-1.5">
-              <li>Toca el ícono de <strong>Compartir</strong> <span class="inline-block px-1.5 py-0.5 bg-zinc-200 rounded font-mono text-[11px]">⍐</span> en la barra inferior de Safari.</li>
-              <li>Desliza hacia abajo y selecciona <strong>"Agregar a inicio"</strong>.</li>
-              <li>Toca <strong>"Agregar"</strong> en la esquina superior derecha.</li>
-            </ol>
-          `;
-        } else {
-          installInstructions.innerHTML = `
-            <p class="font-semibold text-zinc-900">En Android / PC (Chrome o Edge):</p>
-            <ol class="list-decimal pl-4 space-y-1.5">
-              <li>Abre el menú de opciones del navegador (<strong class="font-mono">⋮</strong> arriba a la derecha).</li>
-              <li>Selecciona <strong>"Instalar aplicación"</strong> o <strong>"Agregar a la pantalla principal"</strong>.</li>
-              <li>Confirma tocando en <strong>Instalar</strong>.</li>
-            </ol>
-          `;
-        }
+        installInstructions.innerHTML = isIOS ? `
+          <p class="font-semibold text-zinc-900">En iPhone / iPad (Safari):</p>
+          <ol class="list-decimal pl-4 space-y-1.5">
+            <li>Toca el ícono de <strong>Compartir</strong> <span class="inline-block px-1.5 py-0.5 bg-zinc-200 rounded font-mono text-[11px]">⍐</span> en la barra inferior.</li>
+            <li>Desliza y selecciona <strong>"Agregar a inicio"</strong>.</li>
+            <li>Toca <strong>"Agregar"</strong> arriba a la derecha.</li>
+          </ol>
+        ` : `
+          <p class="font-semibold text-zinc-900">En Android / PC (Chrome o Edge):</p>
+          <ol class="list-decimal pl-4 space-y-1.5">
+            <li>Abre el menú del navegador (<strong class="font-mono">⋮</strong> arriba a la derecha).</li>
+            <li>Selecciona <strong>"Instalar aplicación"</strong> o <strong>"Agregar a la pantalla principal"</strong>.</li>
+            <li>Confirma tocando en <strong>Instalar</strong>.</li>
+          </ol>
+        `;
         installModal.classList.remove('hidden');
       }
     });
@@ -371,7 +356,7 @@
     document.getElementById('installModalBackdrop').addEventListener('click', () => installModal.classList.add('hidden'));
 
     // ==========================================
-    // 1. DATOS DEL MANUAL (Extraídos del PDF)
+    // 1. DATOS DEL MANUAL (15 Temas Separados)
     // ==========================================
     const USERS_DATA = [
       {
@@ -638,30 +623,68 @@
         ]
       },
       {
-        id: "transferencias-devoluciones-inv",
+        id: "transferencias-tiendas",
         number: "13",
-        title: "Transferencias, Devoluciones e Inventario No Planificado",
+        title: "Transferencias entre Tiendas",
         category: "Movimientos Especiales",
-        tcodes: ["SAP jd25", "SP02", "NetWeaver", "MIN07"],
+        tcodes: ["SAP jd25", "SP02", "Tienda 0313"],
         alerts: [
-          { type: "warning", text: "Copias de impresión: SP02 requiere 3 copias de cada uno. Visualizar pedido de devolución requiere 5 hojas para Prevención." }
+          { type: "info", text: "Impresión: En transacción SP02 se deben sacar exactamente 3 copias de cada documento." }
         ],
         steps: [
-          "Transferencias: Ir a 'Crear traslado' → Categoría centro receptor: Punto de venta → Centro receptor: número de tienda (ej. Resurrección es 0313). Motivo: 'Excedente de merca', Nota: 'Transferencia' → Crear, añadir productos con '+', Enviar y OK.",
-          "Impresión SP02: Entrar a SAP con usuario jd25, ejecutar SP02 para dar orden correcto y sacar 3 copias de cada uno.",
-          "Devoluciones (SAP NetWeaver): Ir a Movimientos de mercancía → cambiar 'Salida' a 'Devolución local', Procesar, elegir motivo, capturar número de proveedor y código de artículo (si está abierta deja pasar). Poner cantidad (ctd), grabar y anotar folio (hacer por separado si es distinto proveedor).",
-          "Liberar y Contabilizar Devolución en SAP: Ingresar folio en 'Devolución a proveedores' → Ejecutar (reloj) → anotar nuevo número. Ir a 'Monitor de devolución' → Contabilizar devolución → Marcar todo → Ejecutar → dar motivo y anotar los primeros 10 dígitos.",
-          "Impresión Prevención: Ir a 'Visualizar pedido' + Fecha de creación → Ejecutar e imprimir 5 hojas para Prevención (en Operación de tienda capturar documento y año arriba).",
-          "Modificación de Inventario: Entrar a 'Inventario no planificado', ingresar código y cantidad → OK, copiar número. Abrir SAP de Chío (u0092jd52), entrar a MIN07, ingresar número de contabilización y copiar el folio final."
+          "Entrar a 'Transferencia de productos' → 'Crear traslado'.",
+          "En Categoría de centro receptor seleccionar 'Punto de venta' y en Centro receptor colocar el número de tienda (ej. Resurrección es 0313).",
+          "En Motivo colocar 'Excedente de merca', en Nota escribir 'Transferencia' y dar clic en 'Crear'.",
+          "Dar clic en la cruz '+' para añadir los productos, luego presionar 'Enviar' y confirmar en 'OK'.",
+          "Para imprimir: abrir SAP con el usuario jd25, ejecutar la transacción SP02 para dar el orden correcto.",
+          "Dar clic en la flechita negra e imprimir 3 copias de cada uno."
+        ]
+      },
+      {
+        id: "devoluciones-proveedores",
+        number: "14",
+        title: "Devoluciones (Locales y a Proveedores)",
+        category: "Devoluciones",
+        tcodes: ["SAP NetWeaver", "Monitor Devolución", "5 Hojas"],
+        alerts: [
+          { type: "warning", text: "Si los productos son de diferente proveedor, debes hacer un trámite y folio por separado para cada proveedor." },
+          { type: "danger", text: "Prevención: Al visualizar el pedido final se deben imprimir 5 hojas para Prevención." }
+        ],
+        steps: [
+          "Entrar a SAP NetWeaver → 'Movimientos de mercancía' y cambiar 'Salida' por 'Devolución local' → Procesar.",
+          "Seleccionar el motivo correspondiente, capturar el número de proveedor y dar clic en 'Procesar'.",
+          "Ingresar el código del artículo y dar en 'Procesar' (si deja pasar es porque está abierta; si no, arrojará leyenda).",
+          "En 'ctd' capturar la cantidad a procesar, dar en 'Procesar', luego en 'Grabar' y anotar el número de folio generado.",
+          "Abrir SAP, ingresar el número de folio anotado y volver a anotar el nuevo número que arroja el sistema.",
+          "Ir a 'Devolución a proveedores' → Ejecutar (reloj). Cuando salga el documento significa que ya se liberó.",
+          "Entrar a 'Monitor de devolución' → 'Contabilizar devolución' → 'Marcar todo' → Ejecutar, ingresar el motivo y anotar los primeros 10 dígitos del número.",
+          "Ir a 'Visualizar pedido' + Fecha de creación → Ejecutar e imprimir 5 hojas para Prevención (en Operación de tienda capturar el documento y arriba el año)."
+        ]
+      },
+      {
+        id: "modificacion-inventario",
+        number: "15",
+        title: "Modificación de Inventario No Planificado",
+        category: "Control de Inventarios",
+        tcodes: ["MIN07", "u0092jd52"],
+        alerts: [
+          { type: "info", text: "Se realiza entrando al SAP de Chío con el usuario u0092jd52." }
+        ],
+        steps: [
+          "Entrar al módulo de 'Inventario no planificado'.",
+          "Ingresar el código del producto y la cantidad, dar clic en 'OK' y copiar el número generado.",
+          "Abrir el SAP de Chío con el usuario u0092jd52 e ingresar a la transacción MIN07.",
+          "Ingresar el número de contabilización copiado anteriormente y guardar/copiar el número final que arroja el sistema."
         ]
       }
     ];
 
     // ==========================================
-    // 2. RENDERIZADO Y LÓGICA DE INTERFAZ
+    // 2. RENDERIZADO Y LÓGICA DE ACORDEÓN
     // ==========================================
     const STORAGE_KEY = 'muelle_sap_checklist_v1';
     let checkedSteps = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    let expandedTopics = {}; // Controla qué tarjetas están abiertas
 
     function saveChecklistState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(checkedSteps));
@@ -725,24 +748,43 @@
       `).join('');
     }
 
+    // Abrir un tema específico (usado al hacer clic en el menú lateral)
+    function openAndScrollToTopic(topicId) {
+      expandedTopics[topicId] = true;
+      renderTopics(document.getElementById('searchInput').value);
+      setTimeout(() => {
+        const el = document.getElementById(topicId);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
+
     function renderNavigation(topics) {
       const desktopNav = document.getElementById('desktopNav');
       const mobileNav = document.getElementById('mobileNav');
       document.getElementById('topicCount').textContent = topics.length;
 
       const linksHTML = topics.map(t => `
-        <a href="#${t.id}" class="nav-item flex items-center gap-2.5 px-3 py-1.5 text-xs font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors">
+        <button
+          type="button"
+          data-target="${t.id}"
+          class="nav-item w-full text-left flex items-center gap-2.5 px-3 py-1.5 text-xs font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors cursor-pointer"
+        >
           <span class="font-mono text-[10px] text-zinc-400">${t.number}</span>
           <span class="truncate">${t.title}</span>
-        </a>
+        </button>
       `).join('');
 
       desktopNav.innerHTML = linksHTML;
       mobileNav.innerHTML = linksHTML;
 
-      mobileNav.querySelectorAll('a').forEach(link => {
-        link.addEventListener('click', () => {
+      desktopNav.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => openAndScrollToTopic(btn.dataset.target));
+      });
+
+      mobileNav.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
           document.getElementById('mobileDrawer').classList.add('hidden');
+          openAndScrollToTopic(btn.dataset.target);
         });
       });
     }
@@ -782,6 +824,8 @@
         const completedCount = topic.steps.filter((_, idx) => checkedSteps[`${topic.id}-${idx}`]).length;
         const totalSteps = topic.steps.length;
         const isAllDone = completedCount === totalSteps && totalSteps > 0;
+        // Si hay búsqueda activa, se abre automáticamente para ver la coincidencia; si no, respeta el estado de acordeón
+        const isOpen = q.length > 0 ? true : !!expandedTopics[topic.id];
 
         const alertsHTML = topic.alerts.map(alert => {
           const styles = {
@@ -821,37 +865,69 @@
         }).join('');
 
         return `
-          <article id="${topic.id}" class="scroll-mt-24 bg-white border ${isAllDone ? 'border-emerald-300/80' : 'border-zinc-200/90'} rounded-2xl p-5 sm:p-6 shadow-2xs transition-all">
-            <div class="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-zinc-100">
-              <div class="space-y-1">
-                <div class="flex items-center gap-2">
+          <article id="${topic.id}" class="scroll-mt-24 bg-white border ${isAllDone ? 'border-emerald-300/80' : isOpen ? 'border-zinc-300' : 'border-zinc-200/90'} rounded-2xl shadow-2xs overflow-hidden transition-all">
+            <!-- Encabezado Clicable (Acordeón) -->
+            <button
+              type="button"
+              data-toggle-id="${topic.id}"
+              class="topic-header-btn w-full text-left p-4 sm:px-6 sm:py-4 flex items-center justify-between gap-3 hover:bg-zinc-50/80 transition-colors cursor-pointer"
+            >
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 mb-1">
                   <span class="font-mono text-xs font-semibold text-zinc-400">#${topic.number}</span>
-                  <span class="text-xs font-medium text-zinc-500">${topic.category}</span>
+                  <span class="text-[11px] font-medium text-zinc-500">${topic.category}</span>
                 </div>
-                <h3 class="text-lg font-bold text-zinc-900 tracking-tight">${topic.title}</h3>
+                <h3 class="text-sm sm:text-base font-bold text-zinc-900 tracking-tight leading-snug">${topic.title}</h3>
               </div>
 
-              <div class="flex flex-wrap items-center gap-1.5">
+              <div class="flex items-center gap-2 shrink-0">
+                <div class="hidden md:flex items-center gap-1.5">
+                  ${topic.tcodes.map(code => `
+                    <span class="font-mono text-[11px] font-medium bg-zinc-100 text-zinc-700 border border-zinc-200/70 px-2 py-0.5 rounded-md">
+                      ${code}
+                    </span>
+                  `).join('')}
+                </div>
+                <span class="text-xs font-mono font-medium px-2.5 py-0.5 rounded-full ${isAllDone ? 'bg-emerald-100 text-emerald-800' : 'bg-zinc-100 text-zinc-500'}">
+                  ${completedCount}/${totalSteps}
+                </span>
+                <svg class="w-5 h-5 text-zinc-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-zinc-700' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </div>
+            </button>
+
+            <!-- Contenido Desplegable -->
+            <div class="${isOpen ? 'block' : 'hidden'} border-t border-zinc-100 p-4 sm:p-6 pt-4 space-y-4">
+              <!-- Badges de transacciones visibles en móvil al abrir -->
+              <div class="flex md:hidden flex-wrap gap-1.5">
                 ${topic.tcodes.map(code => `
-                  <span class="font-mono text-[11px] font-medium bg-zinc-100 text-zinc-700 border border-zinc-200/70 px-2.5 py-0.5 rounded-md">
+                  <span class="font-mono text-[11px] font-medium bg-zinc-100 text-zinc-700 border border-zinc-200/70 px-2 py-0.5 rounded-md">
                     ${code}
                   </span>
                 `).join('')}
-                <span class="ml-1 text-xs font-mono font-medium px-2.5 py-0.5 rounded-full ${isAllDone ? 'bg-emerald-100 text-emerald-800' : 'bg-zinc-100 text-zinc-500'}">
-                  ${completedCount}/${totalSteps}
-                </span>
               </div>
-            </div>
 
-            ${alertsHTML ? `<div class="mt-4 space-y-2">${alertsHTML}</div>` : ''}
+              ${alertsHTML ? `<div class="space-y-2">${alertsHTML}</div>` : ''}
 
-            <div class="mt-4 space-y-1">
-              ${stepsHTML}
+              <div class="space-y-1">
+                ${stepsHTML}
+              </div>
             </div>
           </article>
         `;
       }).join('');
 
+      // Eventos para abrir/cerrar cada tarjeta
+      container.querySelectorAll('.topic-header-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.toggleId;
+          expandedTopics[id] = !expandedTopics[id];
+          renderTopics(document.getElementById('searchInput').value);
+        });
+      });
+
+      // Listeners para los checkboxes
       container.querySelectorAll('.step-checkbox').forEach(cb => {
         cb.addEventListener('change', (e) => {
           const key = e.target.dataset.key;
@@ -873,6 +949,25 @@
       renderUsers();
       renderNavigation(TOPICS_DATA);
       renderTopics();
+
+      // Acordeón del panel de Usuarios
+      const toggleUsersBtn = document.getElementById('toggleUsersBtn');
+      const usersPanel = document.getElementById('usersPanel');
+      const usersChevron = document.getElementById('usersChevron');
+
+      toggleUsersBtn.addEventListener('click', () => {
+        const isHidden = usersPanel.classList.toggle('hidden');
+        usersChevron.classList.toggle('rotate-180', !isHidden);
+      });
+
+      // Abrir panel de usuarios si hacen clic en el enlace lateral
+      document.querySelectorAll('a[href="#usuarios"]').forEach(link => {
+        link.addEventListener('click', () => {
+          usersPanel.classList.remove('hidden');
+          usersChevron.classList.add('rotate-180');
+          document.getElementById('mobileDrawer').classList.add('hidden');
+        });
+      });
 
       const searchInput = document.getElementById('searchInput');
       const clearSearchBtn = document.getElementById('clearSearchBtn');
